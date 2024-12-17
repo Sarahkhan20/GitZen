@@ -115,8 +115,6 @@ const CodeExtractor = () => {
             </div>
             <pre>{code}</pre>
           </div>
-
-          {/* Summary Section */}
           <div className="summary-section">
             <CodeSummarizer
               code={code}
