@@ -247,6 +247,11 @@ const combineSummaries = async (summaries) => {
     // Fallback: return combined summaries if unification fails
     return `REPOSITORY SUMMARY (Multiple Parts):\n\n${combinedText}`;
   }
+  } catch (error) {
+    console.error('Error combining summaries:', error.message);
+    // Fallback: return combined summaries if unification fails
+    return `REPOSITORY SUMMARY (Multiple Parts):\n\n${combinedText}`;
+  }
 };
 
 // Health check route
