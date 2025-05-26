@@ -469,8 +469,92 @@ body {
   cursor: not-allowed;
 }
 
+/* Header and Footer Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Header hover effects */
+header a:hover {
+  color: #64b5f6 !important;
+  transform: translateY(-1px);
+}
+
+header .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(45deg, #64b5f6, #42a5f5);
+  transition: width 0.3s ease;
+}
+
+header .nav-link:hover::after {
+  width: 100%;
+}
+
+/* GitHub button hover effect */
+header a[href*="github"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100, 181, 246, 0.4) !important;
+}
+
+/* Footer hover effects */
+footer a:hover {
+  color: #64b5f6 !important;
+  transform: translateY(-1px);
+}
+
+footer .social-link:hover {
+  background: rgba(100, 181, 246, 0.2) !important;
+  border-color: #64b5f6 !important;
+  transform: translateY(-2px);
+}
+
+/* Add padding to body to account for fixed header */
+body {
+  padding-top: 80px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  body {
+    padding-top: 70px;
+  }
+  
+  /* Header mobile styles */
+  header .nav-links {
+    display: none !important;
+  }
+  
+  header .github-button {
+    display: none !important;
+  }
+  
+  header .mobile-menu-button {
+    display: block !important;
+  }
+  
+  /* Footer mobile styles */
+  footer .content {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+    text-align: center;
+  }
+  
+  footer .bottom-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  footer .social-links {
+    justify-content: center;
+  }
+  
   .main-title {
     font-size: 2.5rem;
   }
@@ -499,6 +583,10 @@ body {
 }
 
 @media (max-width: 480px) {
+  body {
+    padding-top: 60px;
+  }
+  
   .main-title {
     font-size: 2rem;
   }
@@ -510,5 +598,17 @@ body {
   .tab-btn {
     font-size: 0.9rem;
     padding: 12px 15px;
+  }
+  
+  /* Footer mobile adjustments */
+  footer .container {
+    padding: 30px 20px 15px;
+  }
+  
+  footer .tech-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
 }
