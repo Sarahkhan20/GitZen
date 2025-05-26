@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -33,13 +32,13 @@ const shouldIncludeFile = (path, name) => {
   if (CONFIG.EXCLUDED_DIRS.some(dir => path.includes(`/${dir}/`) || path.startsWith(`${dir}/`))) {
     return false;
   }
-  
+
   // Check file extension
   const ext = name.toLowerCase().substring(name.lastIndexOf('.'));
   if (CONFIG.EXCLUDED_EXTENSIONS.includes(ext)) {
     return false;
   }
-  
+
   // Include if it has a code extension or no extension (like README, Dockerfile, etc.)
   return CONFIG.CODE_EXTENSIONS.includes(ext) || !ext || name === 'README' || name === 'Dockerfile';
 };
@@ -55,7 +54,7 @@ const chunkContent = (content, maxChunkSize) => {
   const chunks = [];
   let currentChunk = '';
   const lines = content.split('\n');
-  
+
   for (const line of lines) {
     if ((currentChunk + line).length > maxChunkSize && currentChunk.length > 0) {
       chunks.push(currentChunk);
@@ -64,11 +63,11 @@ const chunkContent = (content, maxChunkSize) => {
       currentChunk += line + '\n';
     }
   }
-  
+
   if (currentChunk.trim()) {
     chunks.push(currentChunk);
   }
-  
+
   return chunks;
 };
 
@@ -76,7 +75,7 @@ const chunkContent = (content, maxChunkSize) => {
 app.post('/api/extract-code', async (req, res) => {
   try {
     const { repoUrl } = req.body;
-    
+
     if (!repoUrl) {
       return res.status(400).json({ error: 'Repository URL is required' });
     }
@@ -92,7 +91,7 @@ app.post('/api/extract-code', async (req, res) => {
 
     const fetchContents = async (path) => {
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      
+
       try {
         const response = await axios.get(url, {
           headers: {
@@ -109,13 +108,13 @@ app.post('/api/extract-code', async (req, res) => {
             try {
               const fileResponse = await axios.get(item.download_url);
               const truncatedContent = truncateContent(fileResponse.data, CONFIG.MAX_FILE_SIZE);
-              
+
               contentOutput += `File: ${item.path}\n`;
               contentOutput += '='.repeat(60) + '\n';
               contentOutput += truncatedContent + '\n';
               contentOutput += '='.repeat(60) + '\n\n';
               fileCount++;
-              
+
               // Stop if we're getting too much content
               if (contentOutput.length > CONFIG.MAX_TOTAL_SIZE * 2) {
                 contentOutput += '\n... [Additional files omitted due to size limits] ...';
@@ -127,7 +126,7 @@ app.post('/api/extract-code', async (req, res) => {
           } else if (item.type === 'dir' && !CONFIG.EXCLUDED_DIRS.includes(item.name)) {
             const subContent = await fetchContents(item.path);
             contentOutput += subContent;
-            
+
             // Stop if we're getting too much content
             if (contentOutput.length > CONFIG.MAX_TOTAL_SIZE * 2) {
               break;
@@ -155,7 +154,7 @@ app.post('/api/extract-code', async (req, res) => {
 app.post('/api/summarize-code', async (req, res) => {
   try {
     const { code } = req.body;
-    
+
     if (!code) {
       return res.status(400).json({ error: 'Code content is required' });
     }
@@ -172,13 +171,13 @@ app.post('/api/summarize-code', async (req, res) => {
     console.log(`Processing ${chunks.length} chunks for large repository`);
 
     const chunkSummaries = [];
-    
+
     for (let i = 0; i < chunks.length; i++) {
       try {
         console.log(`Processing chunk ${i + 1}/${chunks.length}`);
         const chunkSummary = await summarizeSingleChunk(chunks[i], i + 1, chunks.length);
         chunkSummaries.push(chunkSummary);
-        
+
         // Add delay between requests to respect rate limits
         if (i < chunks.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 2000));
@@ -211,7 +210,7 @@ const summarizeSingleChunk = async (code, chunkNum = null, totalChunks = null) =
         content: template,
       },
     ],
-    model: 'llama-3.3-70b-versatile',
+    model: 'llama-3.1-8b-instant',
     temperature: 0.3,
     max_tokens: 2000,
   });
@@ -226,7 +225,7 @@ const summarizeSingleChunk = async (code, chunkNum = null, totalChunks = null) =
 // Helper function to combine multiple chunk summaries
 const combineSummaries = async (summaries) => {
   const combinedText = summaries.join('\n\n---\n\n');
-  
+
   const template = `The following are summaries of different parts of a GitHub repository. Please create a unified, comprehensive summary that combines all the information into a coherent overview of the entire project:\n\n${combinedText}\n\nUNIFIED REPOSITORY SUMMARY:`;
 
   try {
@@ -237,19 +236,14 @@ const combineSummaries = async (summaries) => {
           content: template,
         },
       ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.3,
-      max_tokens: 3000,
-    });
+    model: 'llama-3.1-8b-instant',
+    temperature: 0.3,
+    max_tokens: 3000,
+  });
 
-    if (chatCompletion && chatCompletion.choices.length > 0) {
-      return chatCompletion.choices[0].message.content;
-    } else {
-      // Fallback: return combined summaries if unification fails
-      return `REPOSITORY SUMMARY (Multiple Parts):\n\n${combinedText}`;
-    }
-  } catch (error) {
-    console.error('Error combining summaries:', error.message);
+  if (chatCompletion && chatCompletion.choices.length > 0) {
+    return chatCompletion.choices[0].message.content;
+  } else {
     // Fallback: return combined summaries if unification fails
     return `REPOSITORY SUMMARY (Multiple Parts):\n\n${combinedText}`;
   }
