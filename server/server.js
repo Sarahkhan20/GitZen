@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -27,9 +26,14 @@ const CONFIG = {
 };
 
 // Helper function to check if file should be included
-const shouldIncludeFile = (path, name) => {
+const shouldIncludeFile = (path, name, size = 0) => {
   // Check if it's in excluded directories
   if (CONFIG.EXCLUDED_DIRS.some(dir => path.includes(`/${dir}/`) || path.startsWith(`${dir}/`))) {
+    return false;
+  }
+
+  // Check file size limit
+  if (size > CONFIG.MAX_FILE_SIZE) {
     return false;
   }
 
@@ -53,28 +57,28 @@ const truncateContent = (content, maxLength) => {
 // Helper function to chunk content intelligently
 const chunkContent = (content, maxChunkSize) => {
   if (!content || typeof content !== 'string') return [''];
-  
+
   const chunks = [];
   let currentChunk = '';
-  
+
   // Split by files first
   const fileSections = content.split(/(?=File: [^\n]+\n=+)/);
-  
+
   for (const section of fileSections) {
     if (!section.trim()) continue;
-    
+
     if ((currentChunk + section).length > maxChunkSize && currentChunk.length > 0) {
       chunks.push(currentChunk.trim());
       currentChunk = section;
     } else {
       currentChunk += section;
     }
-    
+
     // If a single section is too large, split it further
     if (currentChunk.length > maxChunkSize) {
       const lines = currentChunk.split('\n');
       let tempChunk = '';
-      
+
       for (const line of lines) {
         if ((tempChunk + line + '\n').length > maxChunkSize && tempChunk.length > 0) {
           chunks.push(tempChunk.trim());
@@ -83,7 +87,7 @@ const chunkContent = (content, maxChunkSize) => {
           tempChunk += line + '\n';
         }
       }
-      
+
       currentChunk = tempChunk;
     }
   }
@@ -115,7 +119,7 @@ app.post('/api/extract-code', async (req, res) => {
 
     const fetchContents = async (path, depth = 0) => {
       if (depth > 10) return ''; // Prevent infinite recursion
-      
+
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
       try {
@@ -135,15 +139,15 @@ app.post('/api/extract-code', async (req, res) => {
             break;
           }
 
-          if (item.type === 'file' && shouldIncludeFile(item.path, item.name)) {
+          if (item.type === 'file' && shouldIncludeFile(item.path, item.name, item.size)) {
             try {
               const fileResponse = await axios.get(item.download_url, {
                 timeout: 10000,
                 maxContentLength: 500000 // 500KB limit per file
               });
-              
+
               let content = fileResponse.data;
-              
+
               // Handle different content types
               if (content === null || content === undefined) {
                 content = '[Empty file]';
@@ -156,12 +160,12 @@ app.post('/api/extract-code', async (req, res) => {
               } else if (typeof content !== 'string') {
                 content = String(content);
               }
-              
+
               // Skip if content is too large or binary
               if (content.length > CONFIG.MAX_FILE_SIZE * 2) {
                 content = `[File too large: ${content.length} characters - truncated]\n${content.substring(0, CONFIG.MAX_FILE_SIZE)}`;
               }
-              
+
               const truncatedContent = truncateContent(content, CONFIG.MAX_FILE_SIZE);
 
               contentOutput += `File: ${item.path}\n`;
@@ -262,7 +266,7 @@ app.post('/api/summarize-code', async (req, res) => {
 const summarizeSingleChunk = async (code, chunkNum = null, totalChunks = null) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-    
+
     const chunkPrefix = chunkNum ? `[Chunk ${chunkNum}/${totalChunks}] ` : '';
     const prompt = `${chunkPrefix}Analyze this GitHub repository code and provide a concise bullet-point summary. Focus on:
 - Main purpose and functionality
@@ -291,7 +295,7 @@ Provide a clear, structured summary:`;
 const combineSummaries = async (summaries) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-    
+
     const combinedText = summaries.join('\n\n---\n\n');
     const prompt = `The following are summaries of different parts of a GitHub repository. Please create a unified, comprehensive summary that combines all the information into a coherent overview of the entire project:
 
