@@ -8,6 +8,8 @@ const CodeExtractor = () => {
   const [repoLink, setRepoLink] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       alert("Copied to clipboard!");
@@ -25,54 +27,27 @@ const CodeExtractor = () => {
   };
 
   const extractCode = async () => {
-    const token = process.env.REACT_APP_GITHUB_TOKEN;
-    const parts = repoLink.split("/");
-    const owner = parts[parts.length - 2];
-    const repo = parts[parts.length - 1];
+    if (!repoLink.trim()) {
+      setError("Please enter a repository URL");
+      return;
+    }
 
-    const fetchContents = async (path) => {
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      console.log("Fetching URL:", url);
-
-      try {
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github.v3.raw",
-          },
-        });
-
-        console.log("Response data:", response.data);
-
-        let contentOutput = "";
-
-        for (const item of response.data) {
-          if (item.type === "file") {
-            const fileResponse = await axios.get(item.download_url);
-            contentOutput += `File: ${item.path}\n`;
-            contentOutput += "=".repeat(60) + "\n";
-            contentOutput += fileResponse.data + "\n";
-            contentOutput += "=".repeat(60) + "\n\n";
-          } else if (item.type === "dir") {
-            contentOutput += await fetchContents(item.path);
-          }
-        }
-
-        return contentOutput;
-      } catch (err) {
-        console.error(
-          "Error fetching contents:",
-          err.response?.data || err.message
-        );
-        setError(err.response?.data?.message || "An error occurred");
-        return "";
-      }
-    };
-
-    const allCode = await fetchContents("");
-    console.log("All Code Fetched:", allCode);
-    setCode(allCode);
+    setLoading(true);
     setError("");
+    setCode("");
+
+    try {
+      const response = await axios.post('/api/extract-code', {
+        repoUrl: repoLink
+      });
+
+      setCode(response.data.code);
+    } catch (err) {
+      console.error("Error extracting code:", err);
+      setError(err.response?.data?.error || "Failed to extract code from repository");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,9 +60,14 @@ const CodeExtractor = () => {
             placeholder="Enter GitHub Repo URL"
             value={repoLink}
             onChange={(e) => setRepoLink(e.target.value)}
+            disabled={loading}
           />
-          <button className="extractCodeButton" onClick={extractCode}>
-            Extract Code
+          <button 
+            className="extractCodeButton" 
+            onClick={extractCode}
+            disabled={loading}
+          >
+            {loading ? "Extracting..." : "Extract Code"}
           </button>
         </div>
       </div>

@@ -1,37 +1,28 @@
 import React, { useState, useEffect } from "react";
-import Groq from "groq-sdk";
+import axios from "axios";
 import { FaCopy, FaDownload } from "react-icons/fa";
+
 const CodeSummarizer = ({ code, copyToClipboard, downloadAsTxt }) => {
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const summarizeCode = async (codeText) => {
+    setLoading(true);
+    setError("");
+    setSummary("");
+
     try {
-      const groq = new Groq({
-        apiKey: process.env.REACT_APP_GROQ_API_KEY,
-        dangerouslyAllowBrowser: true,
+      const response = await axios.post('/api/summarize-code', {
+        code: codeText
       });
 
-      const template = `Summarize this GitHub repository. The aim of this project is to assist individuals who are contributing to open source projects and may not fully understand the repository's purpose or functionality. Please provide a concise summary that includes key features, objectives, and any important information that would help new contributors understand the project better.\n\n\`\`\`${codeText}\`\`\`\n\nBULLET POINT SUMMARY:\n`;
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "user",
-            content: template,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-      });
-
-      if (chatCompletion && chatCompletion.choices.length > 0) {
-        setSummary(chatCompletion.choices[0].message.content);
-      } else {
-        setError("No summary returned from API");
-      }
+      setSummary(response.data.summary);
     } catch (err) {
-      console.error("Error summarizing code:", err.message);
-      setError("Failed to summarize code");
+      console.error("Error summarizing code:", err);
+      setError(err.response?.data?.error || "Failed to summarize code");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,36 +34,28 @@ const CodeSummarizer = ({ code, copyToClipboard, downloadAsTxt }) => {
 
   return (
     <div>
+      <h2>AI Summary:</h2>
+      {loading && <p>Generating summary...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {summary && (
         <div>
-          <h2>Summary:</h2>
           <div>
             <button
-              onClick={() => copyToClipboard(summary)}
-              title="Copy to Clipboard"
               className="secbutton"
+              onClick={() => copyToClipboard(summary)}
+              title="Copy Summary"
             >
               <FaCopy />
             </button>
             <button
               onClick={() => downloadAsTxt("code_summary.txt", summary)}
-              title="Download as Text"
               className="secbutton"
+              title="Download Summary"
             >
               <FaDownload />
             </button>
           </div>
-          <pre
-            style={{
-              whiteSpace: "pre-wrap",
-              backgroundColor: "#f5f5f5",
-              padding: "10px",
-              borderRadius: "5px",
-            }}
-          >
-            {summary}
-          </pre>
+          <pre>{summary}</pre>
         </div>
       )}
     </div>
