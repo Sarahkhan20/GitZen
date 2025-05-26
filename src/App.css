@@ -164,6 +164,61 @@ body {
   cursor: not-allowed;
 }
 
+.error-message {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  backdrop-filter: blur(10px);
+}
+
+.error-content h3 {
+  color: #ff5252;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.error-content p {
+  color: #ffcdd2;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.error-tips {
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.error-tips h4 {
+  color: #fff;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.error-tips ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.error-tips li {
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  padding-left: 15px;
+  position: relative;
+}
+
+.error-tips li:before {
+  content: "•";
+  color: #64b5f6;
+  position: absolute;
+  left: 0;
+}
+
 .loading-content {
   display: flex;
   align-items: center;

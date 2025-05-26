@@ -108,26 +108,46 @@ app.post('/api/extract-code', async (req, res) => {
       return res.status(400).json({ error: 'Repository URL is required' });
     }
 
-    // Parse GitHub URL
-    const parts = repoUrl.split('/');
-    const owner = parts[parts.length - 2];
-    const repo = parts[parts.length - 1];
+    // Clean and parse GitHub URL
+    let cleanUrl = repoUrl.trim();
+    if (cleanUrl.endsWith('.git')) {
+      cleanUrl = cleanUrl.slice(0, -4);
+    }
+    if (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+
+    // Extract owner and repo from URL
+    const urlPattern = /github\.com\/([^\/]+)\/([^\/]+)/;
+    const match = cleanUrl.match(urlPattern);
+    
+    if (!match) {
+      return res.status(400).json({ error: 'Invalid GitHub repository URL. Please use format: https://github.com/owner/repo' });
+    }
+
+    const owner = match[1];
+    const repo = match[2];
+
+    console.log(`Extracting code from: ${owner}/${repo}`);
 
     if (!owner || !repo) {
-      return res.status(400).json({ error: 'Invalid GitHub repository URL' });
+      return res.status(400).json({ error: 'Invalid GitHub repository URL format' });
     }
 
     const fetchContents = async (path, depth = 0) => {
       if (depth > 10) return ''; // Prevent infinite recursion
 
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      console.log(`Fetching: ${url}`);
 
       try {
         const response = await axios.get(url, {
           headers: {
+            'User-Agent': 'GitZen-Code-Analyzer',
             Authorization: process.env.GITHUB_TOKEN ? `Bearer ${process.env.GITHUB_TOKEN}` : undefined,
             Accept: 'application/vnd.github.v3+json',
           },
+          timeout: 30000, // 30 second timeout
         });
 
         let contentOutput = '';
@@ -200,17 +220,60 @@ app.post('/api/extract-code', async (req, res) => {
         console.log(`Processed ${fileCount} files from ${path || 'root'}`);
         return contentOutput;
       } catch (err) {
-        console.error('Error fetching contents:', err.response?.data || err.message);
-        throw new Error(err.response?.data?.message || 'Failed to fetch repository contents');
+        console.error('Error fetching contents:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          message: err.message
+        });
+        
+        if (err.response?.status === 404) {
+          throw new Error(`Repository '${owner}/${repo}' not found or is private. Please check the URL and ensure it's a public repository.`);
+        } else if (err.response?.status === 403) {
+          throw new Error('Rate limit exceeded or access forbidden. Please try again later.');
+        } else if (err.response?.status === 401) {
+          throw new Error('Unauthorized access. The repository might be private.');
+        } else if (err.code === 'ECONNABORTED') {
+          throw new Error('Request timeout. The repository might be too large or GitHub is slow to respond.');
+        } else {
+          throw new Error(err.response?.data?.message || `Failed to fetch repository contents: ${err.message}`);
+        }
       }
     };
 
+    // First, check if repository exists by fetching basic info
+    try {
+      const repoInfoUrl = `https://api.github.com/repos/${owner}/${repo}`;
+      await axios.get(repoInfoUrl, {
+        headers: {
+          'User-Agent': 'GitZen-Code-Analyzer',
+          Authorization: process.env.GITHUB_TOKEN ? `Bearer ${process.env.GITHUB_TOKEN}` : undefined,
+        },
+        timeout: 10000
+      });
+    } catch (repoErr) {
+      if (repoErr.response?.status === 404) {
+        return res.status(404).json({ error: `Repository '${owner}/${repo}' not found. Please check the URL.` });
+      } else if (repoErr.response?.status === 403) {
+        return res.status(403).json({ error: 'This repository is private or access is forbidden.' });
+      }
+      throw repoErr;
+    }
+
     const allCode = await fetchContents('');
+    
+    if (!allCode || allCode.trim().length === 0) {
+      return res.status(404).json({ error: 'No extractable code found in this repository. It might be empty or contain only excluded file types.' });
+    }
+    
     res.json({ code: allCode });
 
   } catch (error) {
     console.error('Extract code error:', error.message);
-    res.status(500).json({ error: error.message });
+    const statusCode = error.message.includes('not found') ? 404 : 
+                      error.message.includes('forbidden') || error.message.includes('private') ? 403 :
+                      error.message.includes('timeout') ? 408 : 500;
+    res.status(statusCode).json({ error: error.message });
   }
 });
 

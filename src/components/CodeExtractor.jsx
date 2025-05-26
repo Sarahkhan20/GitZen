@@ -157,7 +157,19 @@ const CodeExtractor = () => {
 
       {error && (
         <div className="error-message">
-          <p>{error}</p>
+          <div className="error-content">
+            <h3>⚠️ Error</h3>
+            <p>{error}</p>
+            <div className="error-tips">
+              <h4>Common issues:</h4>
+              <ul>
+                <li>Make sure the repository URL is correct and public</li>
+                <li>Check if the repository exists and is accessible</li>
+                <li>Some large repositories may take longer to process</li>
+                <li>Private repositories cannot be accessed</li>
+              </ul>
+            </div>
+          </div>
         </div>
       )}
 
