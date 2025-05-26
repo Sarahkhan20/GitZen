@@ -540,15 +540,9 @@ body {
   
   /* Footer mobile styles */
   footer .content {
-    grid-template-columns: 1fr !important;
-    gap: 30px !important;
+    flex-direction: column !important;
     text-align: center;
-  }
-  
-  footer .bottom-section {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
+    gap: 15px !important;
   }
   
   footer .social-links {
