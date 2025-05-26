@@ -38,25 +38,32 @@
 ## 🧩 **Project Structure**
 
     Directory structure:
-    └── Sarahkhan20-GitZen
-        ├── public
-        │   ├── manifest.json
-        │   ├── index.html
-        │   ├── favicon.ico
-        │   └── robots.txt
-        ├── package.json
-        └── src
-            ├── setupTests.js
-            ├── components
-            │   ├── CodeExtractor.jsx
-            │   ├── CodeSummarizer.jsx
-            │   ├── Header.jsx
-            │   └── Footer.jsx
-            ├── App.js
-            ├── reportWebVitals.js
-            ├── App.test.js
-            └── index.js
-
+    └── sarahkhan20-gitzen/
+      ├── README.md
+      ├── LICENSE
+      ├── package.json
+      ├── public/
+      │   ├── index.html
+      │   ├── manifest.json
+      │   └── robots.txt
+      ├── server/
+      │   ├── package-lock.json
+      │   ├── package.json
+      │   └── server.js
+      └── src/
+          ├── App.css
+          ├── App.js
+          ├── App.test.js
+          ├── index.css
+          ├── index.js
+          ├── reportWebVitals.js
+          ├── setupTests.js
+          └── components/
+              ├── ChatInterface.jsx
+              ├── CodeExtractor.jsx
+              ├── CodeSummarizer.jsx
+              ├── Footer.jsx
+              └── Header.jsx
 
 ---
 
