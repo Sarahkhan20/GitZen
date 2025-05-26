@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FaGithub, FaBars, FaTimes } from "react-icons/fa";
 
@@ -10,17 +9,23 @@ const Header = () => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     return (
-        <header style={{
-            ...styles.header,
-            backdropFilter: isScrolled ? 'blur(10px)' : 'none',
-            backgroundColor: isScrolled ? 'rgba(36, 41, 46, 0.95)' : '#24292e',
-            boxShadow: isScrolled ? '0 4px 20px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.2)',
-        }}>
+        <header
+            style={{
+                ...styles.header,
+                backdropFilter: isScrolled ? "blur(10px)" : "none",
+                backgroundColor: isScrolled
+                    ? "rgba(36, 41, 46, 0.95)"
+                    : "#24292e",
+                boxShadow: isScrolled
+                    ? "0 4px 20px rgba(0,0,0,0.3)"
+                    : "0 2px 4px rgba(0,0,0,0.2)",
+            }}
+        >
             <div style={styles.container}>
                 <div style={styles.logoSection}>
                     <div style={styles.logoIcon}>
@@ -31,14 +36,10 @@ const Header = () => {
                         <span style={styles.tagline}>AI Code Analyzer</span>
                     </div>
                 </div>
-                
+
                 <nav style={styles.nav}>
-                    <div style={styles.navLinks}>
-                        <a href="#features" style={styles.navLink}>Features</a>
-                        <a href="#about" style={styles.navLink}>About</a>
-                        <a href="#contact" style={styles.navLink}>Contact</a>
-                    </div>
-                    
+                    <div style={styles.navLinks}></div>
+
                     <a
                         href="https://github.com/Sarahkhan20/GitZen"
                         target="_blank"
@@ -48,7 +49,7 @@ const Header = () => {
                         <FaGithub style={{ marginRight: "8px" }} />
                         View on GitHub
                     </a>
-                    
+
                     <button
                         style={styles.mobileMenuButton}
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -57,12 +58,18 @@ const Header = () => {
                     </button>
                 </nav>
             </div>
-            
+
             {isMobileMenuOpen && (
                 <div style={styles.mobileMenu}>
-                    <a href="#features" style={styles.mobileNavLink}>Features</a>
-                    <a href="#about" style={styles.mobileNavLink}>About</a>
-                    <a href="#contact" style={styles.mobileNavLink}>Contact</a>
+                    <a href="#features" style={styles.mobileNavLink}>
+                        Features
+                    </a>
+                    <a href="#about" style={styles.mobileNavLink}>
+                        About
+                    </a>
+                    <a href="#contact" style={styles.mobileNavLink}>
+                        Contact
+                    </a>
                     <a
                         href="https://github.com/Sarahkhan20/GitZen"
                         target="_blank"
@@ -80,13 +87,13 @@ const Header = () => {
 
 const styles = {
     header: {
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 1000,
-        transition: 'all 0.3s ease',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        transition: "all 0.3s ease",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
     },
     container: {
         display: "flex",
@@ -210,11 +217,11 @@ const styles = {
 };
 
 // Add responsive styles
-const mediaQuery = window.matchMedia('(max-width: 768px)');
+const mediaQuery = window.matchMedia("(max-width: 768px)");
 if (mediaQuery.matches) {
-    styles.navLinks.display = 'none';
-    styles.githubButton.display = 'none';
-    styles.mobileMenuButton.display = 'block';
+    styles.navLinks.display = "none";
+    styles.githubButton.display = "none";
+    styles.mobileMenuButton.display = "block";
 }
 
 export default Header;
