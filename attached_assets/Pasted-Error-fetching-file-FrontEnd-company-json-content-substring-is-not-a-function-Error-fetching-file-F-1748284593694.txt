@@ -1,0 +1,25 @@
+Error fetching file FrontEnd/company.json: content.substring is not a function
+Error fetching file FrontEnd/package-lock.json: content.substring is not a function
+Error fetching file FrontEnd/package.json: content.substring is not a function
+PayloadTooLargeError: request entity too large
+    at readStream (/home/runner/workspace/server/node_modules/raw-body/index.js:163:17)
+    at getRawBody (/home/runner/workspace/server/node_modules/raw-body/index.js:116:12)
+    at read (/home/runner/workspace/server/node_modules/body-parser/lib/read.js:79:3)
+    at jsonParser (/home/runner/workspace/server/node_modules/body-parser/lib/types/json.js:138:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/server/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/server/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/server/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/server/node_modules/express/lib/router/index.js:280:10)
+    at cors (/home/runner/workspace/server/node_modules/cors/lib/index.js:188:7)
+PayloadTooLargeError: request entity too large
+    at readStream (/home/runner/workspace/server/node_modules/raw-body/index.js:163:17)
+    at getRawBody (/home/runner/workspace/server/node_modules/raw-body/index.js:116:12)
+    at read (/home/runner/workspace/server/node_modules/body-parser/lib/read.js:79:3)
+    at jsonParser (/home/runner/workspace/server/node_modules/body-parser/lib/types/json.js:138:5)
+    at Layer.handle [as handle_request] (/home/runner/workspace/server/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/runner/workspace/server/node_modules/express/lib/router/index.js:328:13)
+    at /home/runner/workspace/server/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/server/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/server/node_modules/express/lib/router/index.js:280:10)
+    at cors (/home/runner/workspace/server/node_modules/cors/lib/index.js:188:7)
