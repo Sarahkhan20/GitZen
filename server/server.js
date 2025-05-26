@@ -5,11 +5,12 @@ const Groq = require('groq-sdk');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize Groq client
 const groq = new Groq({
@@ -107,7 +108,12 @@ app.post('/api/extract-code', async (req, res) => {
           if (item.type === 'file' && shouldIncludeFile(item.path, item.name)) {
             try {
               const fileResponse = await axios.get(item.download_url);
-              const truncatedContent = truncateContent(fileResponse.data, CONFIG.MAX_FILE_SIZE);
+              // Handle different content types properly
+              let content = fileResponse.data;
+              if (typeof content !== 'string') {
+                content = String(content);
+              }
+              const truncatedContent = truncateContent(content, CONFIG.MAX_FILE_SIZE);
 
               contentOutput += `File: ${item.path}\n`;
               contentOutput += '='.repeat(60) + '\n';
@@ -118,6 +124,7 @@ app.post('/api/extract-code', async (req, res) => {
               // Stop if we're getting too much content
               if (contentOutput.length > CONFIG.MAX_TOTAL_SIZE * 2) {
                 contentOutput += '\n... [Additional files omitted due to size limits] ...';
+                console.log(`Stopping extraction due to size limit. Processed ${fileCount} files.`);
                 break;
               }
             } catch (fileError) {
