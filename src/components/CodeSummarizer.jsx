@@ -13,7 +13,7 @@ const CodeSummarizer = ({ code, copyToClipboard, downloadAsTxt }) => {
     setSummary("");
 
     try {
-      const response = await axios.post('http://localhost:5000/api/summarize-code', {
+      const response = await axios.post('/api/summarize-code', {
         code: codeText
       });
 
