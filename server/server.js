@@ -6,7 +6,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -18,12 +18,12 @@ const genAI = new GoogleGenerativeAI('AIzaSyCX3qBPXXWd1lCFZJ-SDDjgZMGf2lzYgoM');
 
 // Configuration for optimization
 const CONFIG = {
-  MAX_TOKENS_PER_REQUEST: 30000, // Gemini has better limits
-  MAX_FILE_SIZE: 8000, // Max characters per file
-  MAX_TOTAL_SIZE: 100000, // Max total characters before chunking
-  EXCLUDED_EXTENSIONS: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.pdf', '.zip', '.tar', '.gz', '.css', '.scss', '.sass'], // Added CSS files
-  EXCLUDED_DIRS: ['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '__pycache__'],
-  CODE_EXTENSIONS: ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.scala', '.md', '.txt', '.json', '.yml', '.yaml', '.xml', '.html']
+  MAX_TOKENS_PER_REQUEST: 25000, // Conservative limit for Gemini
+  MAX_FILE_SIZE: 5000, // Reduced max characters per file
+  MAX_TOTAL_SIZE: 80000, // Reduced total size before chunking
+  EXCLUDED_EXTENSIONS: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.pdf', '.zip', '.tar', '.gz', '.css', '.scss', '.sass', '.less', '.woff', '.woff2', '.ttf', '.eot', '.mp4', '.mp3', '.avi', '.mov', '.exe', '.dll', '.so', '.dylib'], // More exclusions
+  EXCLUDED_DIRS: ['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '__pycache__', '.vscode', '.idea', 'target', 'bin', 'obj', 'vendor'],
+  CODE_EXTENSIONS: ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.scala', '.md', '.txt', '.json', '.yml', '.yaml', '.xml', '.html', '.vue', '.svelte']
 };
 
 // Helper function to check if file should be included
@@ -137,12 +137,29 @@ app.post('/api/extract-code', async (req, res) => {
 
           if (item.type === 'file' && shouldIncludeFile(item.path, item.name)) {
             try {
-              const fileResponse = await axios.get(item.download_url);
+              const fileResponse = await axios.get(item.download_url, {
+                timeout: 10000,
+                maxContentLength: 500000 // 500KB limit per file
+              });
+              
               let content = fileResponse.data;
               
-              // Ensure content is string
-              if (typeof content !== 'string') {
-                content = String(content || '');
+              // Handle different content types
+              if (content === null || content === undefined) {
+                content = '[Empty file]';
+              } else if (typeof content === 'object') {
+                try {
+                  content = JSON.stringify(content, null, 2);
+                } catch (e) {
+                  content = '[Binary or complex object - cannot display]';
+                }
+              } else if (typeof content !== 'string') {
+                content = String(content);
+              }
+              
+              // Skip if content is too large or binary
+              if (content.length > CONFIG.MAX_FILE_SIZE * 2) {
+                content = `[File too large: ${content.length} characters - truncated]\n${content.substring(0, CONFIG.MAX_FILE_SIZE)}`;
               }
               
               const truncatedContent = truncateContent(content, CONFIG.MAX_FILE_SIZE);
@@ -153,12 +170,22 @@ app.post('/api/extract-code', async (req, res) => {
               contentOutput += '='.repeat(60) + '\n\n';
               fileCount++;
 
+              // Stop if we're getting too much content
+              if (contentOutput.length > CONFIG.MAX_TOTAL_SIZE) {
+                contentOutput += '\n... [Additional files omitted due to size limits] ...';
+                console.log(`Stopping extraction due to size limit. Processed ${fileCount} files.`);
+                break;
+              }
+
             } catch (fileError) {
               console.error(`Error fetching file ${item.path}:`, fileError.message);
-              contentOutput += `File: ${item.path}\n`;
-              contentOutput += '='.repeat(60) + '\n';
-              contentOutput += `[Error fetching file: ${fileError.message}]\n`;
-              contentOutput += '='.repeat(60) + '\n\n';
+              // Don't include failed files in output to avoid corruption
+              if (fileError.code !== 'ECONNABORTED') {
+                contentOutput += `File: ${item.path}\n`;
+                contentOutput += '='.repeat(60) + '\n';
+                contentOutput += `[Error: ${fileError.message}]\n`;
+                contentOutput += '='.repeat(60) + '\n\n';
+              }
             }
           } else if (item.type === 'dir' && !CONFIG.EXCLUDED_DIRS.includes(item.name)) {
             const subContent = await fetchContents(item.path, depth + 1);

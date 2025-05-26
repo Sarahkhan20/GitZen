@@ -20,7 +20,7 @@ const CodeSummarizer = ({ code, copyToClipboard, downloadAsTxt }) => {
         setProgress("Processing large repository - this may take a moment...");
       }
 
-      const response = await axios.post('http://localhost:3001/api/summarize-code', {
+      const response = await axios.post('/api/summarize-code', {
         code: codeText
       });
 

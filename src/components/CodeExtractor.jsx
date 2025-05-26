@@ -37,7 +37,7 @@ const CodeExtractor = () => {
     setCode("");
 
     try {
-      const response = await axios.post('http://localhost:3001/api/extract-code', {
+      const response = await axios.post('/api/extract-code', {
         repoUrl: repoLink
       });
 
