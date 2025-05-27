@@ -1,45 +1,28 @@
 {
-  "name": "githubcodeextractor",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "axios": "^1.7.9",
-    "cra-template": "1.2.0",
-    "dot-env": "^0.0.1",
-    "groq-sdk": "^0.9.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-icons": "^5.4.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^4.2.4"
-  },
-  "scripts": {
-    "start": "cross-env HOST=0.0.0.0 DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "proxy": "http://localhost:5000",
-  "devDependencies": {
-    "cross-env": "^7.0.3"
-  }
+       "name": "GitZen",
+       "version": "1.0.0",
+       "description": "GitZen is a powerful web-based tool designed to help users extract and summarize code from public GitHub repositories.",
+       "main": "index.js",
+       "scripts": {
+              "build-client": "cd frontend && npm run build",
+              "install-client": "cd frontend && npm install",
+              "install-server": "cd server && npm install",
+              "setup-production": "npm run install-client && npm run build-client && npm run install-server",
+              "start-server": "cd server && node server.js",
+              "start-client": "cd frontend && npm run start",
+              "start-production": "npm run start-server"
+       },
+       "repository": {
+              "type": "git",
+              "url": "git+https://github.com/Sarahkhan20/GitZen"
+       },
+       "keywords": [
+              "github"
+       ],
+       "author": "Sarah Khan",
+       "license": "MIT",
+       "bugs": {
+              "url": "https://github.com/Sarahkhan20/GitZen/issues"
+       },
+       "homepage": "https://github.com/Sarahkhan20/GitZen"
 }
