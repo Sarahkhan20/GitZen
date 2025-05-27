@@ -6,12 +6,18 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const path = require("path");
 
+// only when ready to deploy
+app.use(express.static("../client/build"));
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
+// only when ready to deploy
+app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname, "../client", "build", "index.html"))
+);
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -210,11 +216,9 @@ app.post("/api/extract-code", async (req, res) => {
         const match = cleanUrl.match(urlPattern);
 
         if (!match) {
-            return res
-                .status(400)
-                .json({
-                    error: "Invalid GitHub repository URL. Please use format: https://github.com/owner/repo",
-                });
+            return res.status(400).json({
+                error: "Invalid GitHub repository URL. Please use format: https://github.com/owner/repo",
+            });
         }
 
         const owner = match[1];
@@ -391,17 +395,13 @@ app.post("/api/extract-code", async (req, res) => {
             });
         } catch (repoErr) {
             if (repoErr.response?.status === 404) {
-                return res
-                    .status(404)
-                    .json({
-                        error: `Repository '${owner}/${repo}' not found. Please check the URL.`,
-                    });
+                return res.status(404).json({
+                    error: `Repository '${owner}/${repo}' not found. Please check the URL.`,
+                });
             } else if (repoErr.response?.status === 403) {
-                return res
-                    .status(403)
-                    .json({
-                        error: "This repository is private or access is forbidden.",
-                    });
+                return res.status(403).json({
+                    error: "This repository is private or access is forbidden.",
+                });
             }
             throw repoErr;
         }
@@ -409,11 +409,9 @@ app.post("/api/extract-code", async (req, res) => {
         const allCode = await fetchContents("");
 
         if (!allCode || allCode.trim().length === 0) {
-            return res
-                .status(404)
-                .json({
-                    error: "No extractable code found in this repository. It might be empty or contain only excluded file types.",
-                });
+            return res.status(404).json({
+                error: "No extractable code found in this repository. It might be empty or contain only excluded file types.",
+            });
         }
 
         res.json({ code: allCode });
