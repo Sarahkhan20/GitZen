@@ -10,7 +10,8 @@
               "setup-production": "npm run install-client && npm run build-client && npm run install-server",
               "start-server": "cd server && node server.js",
               "start-client": "cd frontend && npm run start",
-              "start-production": "npm run start-server"
+              "start-production": "npm run start-server",
+              "postinstall": "cd frontend && npm install && cd ../server && npm install"
        },
        "repository": {
               "type": "git",
