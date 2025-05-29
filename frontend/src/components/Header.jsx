@@ -61,15 +61,6 @@ const Header = () => {
 
             {isMobileMenuOpen && (
                 <div style={styles.mobileMenu}>
-                    <a href="#features" style={styles.mobileNavLink}>
-                        Features
-                    </a>
-                    <a href="#about" style={styles.mobileNavLink}>
-                        About
-                    </a>
-                    <a href="#contact" style={styles.mobileNavLink}>
-                        Contact
-                    </a>
                     <a
                         href="https://github.com/Sarahkhan20/GitZen"
                         target="_blank"

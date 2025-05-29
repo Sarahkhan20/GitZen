@@ -33,11 +33,6 @@ const Footer = () => {
                         </a>
                     </div>
                 </div>
-                <div style={styles.copyright}>
-                    <span style={styles.copyrightText}>
-                        © {currentYear} GitZen
-                    </span>
-                </div>
             </div>
         </footer>
     );

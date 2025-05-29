@@ -386,7 +386,7 @@ app.post("/api/extract-code", async (req, res) => {
             const repoInfoUrl = `https://api.github.com/repos/${owner}/${repo}`;
             await axios.get(repoInfoUrl, {
                 headers: {
-                    "User-Agent": "GitZen-Code-Analyzer",
+                    "User-Agent": "-Code-Analyzer",
                     Authorization: process.env.GITHUB_TOKEN
                         ? `Bearer ${process.env.GITHUB_TOKEN}`
                         : undefined,
@@ -499,7 +499,7 @@ const summarizeSingleChunk = async (
         const chunkPrefix = chunkNum
             ? `[Chunk ${chunkNum}/${totalChunks}] `
             : "";
-        const prompt = `${chunkPrefix}Analyze this GitHub repository code and provide a concise bullet-point summary. Focus on:
+        const prompt = `${chunkPrefix}Analyze this GitHub repository code and provide a clear, well-structured summary using markdown with headings, bullet points, and bold for key terms. Focus on:
 - Main purpose and functionality
 - Key features and components
 - Technologies and frameworks used
@@ -511,7 +511,7 @@ Code to analyze:
 ${code}
 \`\`\`
 
-Provide a clear, structured summary:`;
+Format your summary for easy reading with sections, lists, and highlights:`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -530,7 +530,7 @@ const combineSummaries = async (summaries) => {
         });
 
         const combinedText = summaries.join("\n\n---\n\n");
-        const prompt = `The following are summaries of different parts of a GitHub repository. Please create a unified, comprehensive summary that combines all the information into a coherent overview of the entire project:
+        const prompt = `The following are summaries of different parts of a GitHub repository. Please create a unified, comprehensive summary in markdown, using clear headings, bullet points, and bold for key terms:
 
 ${combinedText}
 
@@ -541,7 +541,8 @@ Create a unified summary with:
 - Key components and structure
 - Notable patterns or approaches used
 
-Provide a well-organized, comprehensive summary:`;
+Format your summary for easy reading with sections, lists, and highlights:
+`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
